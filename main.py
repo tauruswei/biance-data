@@ -16,10 +16,10 @@ symbol = 'ETH/USDT'
 timeframe = '1h'
 
 # 2024年1月1日 0点0分0秒 的毫秒级时间戳
-since = exchange.parse8601('2025-01-01T00:00:00Z')
+since = exchange.parse8601('2026-01-01T00:00:00Z')
 all_klines = []
 
-print("开始下载 2024 年 ETH 1小时线数据...")
+print("开始下载 2026 年 ETH 1小时线数据...")
 while since < exchange.parse8601('2026-06-17T00:00:00Z'):
     # limit=1000 代表单次获取 1000 根 K 线
     klines = exchange.fetch_ohlcv(symbol, timeframe, since, limit=1000)
@@ -32,5 +32,5 @@ while since < exchange.parse8601('2026-06-17T00:00:00Z'):
 # 转换为 DataFrame 并保存为 CSV
 df = pd.DataFrame(all_klines, columns=['Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume'])
 df['Timestamp'] = pd.to_datetime(df['Timestamp'], unit='ms')
-df.to_csv('ETHUSDT_2025_2026_1h.csv', index=False)
-print(f"下载完成！共 {len(df)} 行数据，已保存为 ETHUSDT_2025_2026_1h.csv")
+df.to_csv('ETHUSDT_2026_1h.csv', index=False)
+print(f"下载完成！共 {len(df)} 行数据，已保存为 ETHUSDT_2026_1h.csv")
