@@ -1,6 +1,21 @@
+# Exclude git repository
 .git
 .idea
 __pycache__
+.gitignore
+
+# Exclude virtual environments
+quant_env/
+venv/
+.env
+
+# Exclude caches and IDE configs
+__pycache__/
+*.pyc
+.idea/
+.vscode/
+
+# Exclude local data files and CSVs
 *.csv
 *.md
 bot.tgz
