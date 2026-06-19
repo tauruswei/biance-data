@@ -66,19 +66,30 @@ def compute_indicators(df):
 # =========================================================================
 
 class BinanceTestnetBot:
-    def __init__(self, api_key, api_secret, symbol="ETH/USDT", risk_pct=1.5):
+    def __init__(self, api_key, api_secret, symbol="ETH/USDT", risk_pct=1.5, proxy=None):
         self.symbol = symbol
         self.risk_pct = risk_pct
         
-        # Initialize CCXT Binance connector
-        self.exchange = ccxt.binance({
+        exchange_config = {
             'apiKey': api_key,
             'secret': api_secret,
             'enableRateLimit': True,
             'options': {
                 'defaultType': 'future', # Deploy to Futures (multidirectional)
             }
-        })
+        }
+        
+        # Read proxy from parameter, BINANCE_PROXY, HTTP_PROXY, or HTTPS_PROXY environment variables
+        proxy_url = proxy or os.getenv("BINANCE_PROXY") or os.getenv("HTTP_PROXY") or os.getenv("HTTPS_PROXY")
+        if proxy_url:
+            exchange_config['proxies'] = {
+                'http': proxy_url,
+                'https': proxy_url,
+            }
+            print(f"Using proxy for Binance API connections: {proxy_url}")
+            
+        # Initialize CCXT Binance connector
+        self.exchange = ccxt.binance(exchange_config)
         
         # Enable Demo Trading Mode
         self.exchange.enable_demo_trading(True)
@@ -327,6 +338,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description="Binance Testnet Live Trading Bot")
     parser.add_argument('--symbol', type=str, default="ETH/USDT", help="Trading Symbol (e.g. ETH/USDT, BTC/USDT)")
+    parser.add_argument('--proxy', type=str, default=None, help="Proxy URL (e.g. http://127.0.0.1:1082)")
     args = parser.parse_args()
 
     # Retrieve Testnet Credentials from Environment variables (Best security practice)
@@ -337,7 +349,7 @@ if __name__ == '__main__':
         print("[WARNING] Please set your Binance Testnet keys in environment variables before running.")
     
     print(f"Starting bot for symbol: {args.symbol}")
-    bot = BinanceTestnetBot(api_key=API_KEY, api_secret=API_SECRET, symbol=args.symbol)
+    bot = BinanceTestnetBot(api_key=API_KEY, api_secret=API_SECRET, symbol=args.symbol, proxy=args.proxy)
     
     # Run loop
     bot.start_polling()
