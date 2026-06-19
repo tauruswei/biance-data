@@ -84,6 +84,20 @@ class BinanceTestnetBot:
         self.exchange.enable_demo_trading(True)
         print("Demo Trading Mode Enabled.")
         
+        # Determine strategy parameters based on symbol
+        if "BTC" in self.symbol:
+            self.adx_threshold = 20
+            self.kc_mult = 1.8
+            self.sl_mult_long = 2.4
+            self.sl_mult_short = 2.4
+            self.vol_mult_quiet = 2.2
+        else:
+            self.adx_threshold = 18
+            self.kc_mult = 1.6
+            self.sl_mult_long = 2.2
+            self.sl_mult_short = 2.2
+            self.vol_mult_quiet = 2.4
+            
         # State variables (persisted in live trading)
         self.entry_price = 0.0
         self.entry_atr = 0.0
@@ -150,7 +164,7 @@ class BinanceTestnetBot:
         # Check active position
         position = self.get_open_positions()
         equity = self.get_account_equity()
-        print(f"Equity: ${equity:.2f} | Last ETH Price: ${price:.2f}")
+        print(f"Equity: ${equity:.2f} | Last {self.symbol} Price: ${price:.2f}")
         
         if position and position['size'] > 0:
             side = position['side']
@@ -201,15 +215,15 @@ class BinanceTestnetBot:
                 vol_mult = 1.8
                 self.dynamic_p_tp1 = 0.3
             else:
-                vol_mult = 2.4
+                vol_mult = self.vol_mult_quiet
                 self.dynamic_p_tp1 = 0.2
 
             vol_cond = vol > (vol_ma * vol_mult)
-            adx_cond = adx > 18
+            adx_cond = adx > self.adx_threshold
             macd_up = macd > macd_signal
             macd_down = macd < macd_signal
             
-            effective_kc_mult = 1.6 if adx < 30 else 1.6 * 0.8
+            effective_kc_mult = self.kc_mult if adx < 30 else self.kc_mult * 0.8
             
             long_cond = (price > ema_trend and 
                           price > ma_kc_long + (effective_kc_mult * atr) and 
@@ -235,7 +249,7 @@ class BinanceTestnetBot:
         
         if is_long:
             self.highest_price = price
-            stop_dist = 2.2 * atr
+            stop_dist = self.sl_mult_long * self.entry_atr
             risk_amt = equity * (self.risk_pct / 100)
             
             # Position sizing (based on SL distance)
@@ -265,7 +279,7 @@ class BinanceTestnetBot:
             print(f"Set Take-Profit limit order (for {size1:.3f} contracts) at: ${tp_price:.2f}")
             
         else:
-            stop_dist = 2.2 * atr
+            stop_dist = self.sl_mult_short * self.entry_atr
             risk_amt = equity * (self.risk_pct / 100)
             total_contracts = risk_amt / stop_dist
             if total_contracts * price > equity * 10:
@@ -310,14 +324,20 @@ class BinanceTestnetBot:
 # Run Bot entry
 # =========================================================================
 if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description="Binance Testnet Live Trading Bot")
+    parser.add_argument('--symbol', type=str, default="ETH/USDT", help="Trading Symbol (e.g. ETH/USDT, BTC/USDT)")
+    args = parser.parse_args()
+
     # Retrieve Testnet Credentials from Environment variables (Best security practice)
     API_KEY = os.getenv("BINANCE_TESTNET_API_KEY", "YOUR_TESTNET_API_KEY")
     API_SECRET = os.getenv("BINANCE_TESTNET_SECRET", "YOUR_TESTNET_SECRET")
     
     if API_KEY == "YOUR_TESTNET_API_KEY":
-        print("[WARNING] Please set your Binance Testnet keys in environment variables or edit this file before running.")
+        print("[WARNING] Please set your Binance Testnet keys in environment variables before running.")
     
-    bot = BinanceTestnetBot(api_key=API_KEY, api_secret=API_SECRET)
+    print(f"Starting bot for symbol: {args.symbol}")
+    bot = BinanceTestnetBot(api_key=API_KEY, api_secret=API_SECRET, symbol=args.symbol)
     
     # Run loop
     bot.start_polling()

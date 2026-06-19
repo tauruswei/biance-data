@@ -27,5 +27,5 @@ COPY live_trading_testnet.py .
 # Copy all repository files into the image
 COPY . .
 
-# Run live_trading_testnet.py when the container launches
-CMD ["python", "live_trading_testnet.py"]
+# Run entrypoint.py to launch both ETH and BTC bots
+CMD ["python", "entrypoint.py"]
