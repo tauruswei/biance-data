@@ -80,9 +80,9 @@ class BinanceTestnetBot:
             }
         })
         
-        # Enable Sandbox (Testnet) Mode
-        self.exchange.set_sandbox_mode(True)
-        print("Sandbox (Testnet) Mode Enabled.")
+        # Enable Demo Trading Mode
+        self.exchange.enable_demo_trading(True)
+        print("Demo Trading Mode Enabled.")
         
         # State variables (persisted in live trading)
         self.entry_price = 0.0
@@ -256,7 +256,7 @@ class BinanceTestnetBot:
             # Place initial SL order on exchange
             sl_price = price - stop_dist
             self.current_sl = sl_price
-            self.exchange.create_order(self.symbol, 'stop', 'sell', total_contracts, params={'stopPrice': sl_price})
+            self.exchange.create_order(self.symbol, 'STOP_MARKET', 'sell', total_contracts, None, params={'stopPrice': sl_price, 'reduceOnly': True})
             print(f"Set initial Stop-Loss order at: ${sl_price:.2f}")
             
             # Place TP1 Limit Order
@@ -276,7 +276,7 @@ class BinanceTestnetBot:
             
             sl_price = price + stop_dist
             self.current_sl = sl_price
-            self.exchange.create_order(self.symbol, 'stop', 'buy', total_contracts, params={'stopPrice': sl_price})
+            self.exchange.create_order(self.symbol, 'STOP_MARKET', 'buy', total_contracts, None, params={'stopPrice': sl_price, 'reduceOnly': True})
             
             # Place TP1 Limit Order
             tp_price = price - (atr * 3.0)
@@ -320,4 +320,4 @@ if __name__ == '__main__':
     bot = BinanceTestnetBot(api_key=API_KEY, api_secret=API_SECRET)
     
     # Run loop
-    # bot.start_polling()
+    bot.start_polling()

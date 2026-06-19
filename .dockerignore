@@ -1,0 +1,9 @@
+.git
+.idea
+__pycache__
+*.csv
+*.md
+bot.tgz
+docker-compose*
+Dockerfile
+.dockerignore
